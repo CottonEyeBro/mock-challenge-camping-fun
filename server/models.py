@@ -25,11 +25,11 @@ class Activity(db.Model, SerializerMixin):
     difficulty = db.Column(db.Integer)
 
     # Add relationship
-    signup = db.relationship("Signup", back_populates = "activity", cascade = 'all, delete-orphan')
+    signup = db.relationship("Signup", back_populates = "activity")
 
     # Add serialization rules
     serialize_rules = ('-signup.activity', )
-    
+
     def __repr__(self):
         return f'<Activity {self.id}: {self.name}>'
 
@@ -42,7 +42,7 @@ class Camper(db.Model, SerializerMixin):
     age = db.Column(db.Integer)
 
     # Add relationship
-    signup = db.relationship("Signup", back_populates = "camper", cascade = 'all, delete-orphan')
+    signup = db.relationship("Signup", back_populates = "camper")
 
     # Add serialization rules
     serialize_rules = ('-signup.camper', )
