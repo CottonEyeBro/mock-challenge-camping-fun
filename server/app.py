@@ -30,9 +30,10 @@ def campers():
     
     if request.method == 'GET':
         campers = Camper.query.all()
+        campers_dict = [camper.to_dict(rules = ('-signups', )) for camper in campers]
 
         response = make_response(
-            campers.to_dict(),
+            campers_dict,
             200
         )
     
@@ -47,15 +48,18 @@ def campers():
             )
 
             db.session.add(new_camper_obj)
+
             db.session.commit()
+
             response = make_response(
                 new_camper_obj.to_dict(),
                 201
             )
+
         except ValueError:
             response = make_response(
-                {"validation errors" : None},
-                403
+                {"errors": ["validation errors"]},
+                400
             )
             return response
         
@@ -64,12 +68,13 @@ def campers():
 @app.route('/campers/<int:id>', methods = ['GET', 'PATCH'])
 def campers_by_id(id):
     camper = Camper.query.filter(Camper.id == id).first()
+    
 
     if camper:
 
         if request.method == 'GET':
             response = make_response(
-                camper.to_dict(rules = ('-signup', )),
+                camper.to_dict(),
                 200
             )
 
@@ -84,19 +89,20 @@ def campers_by_id(id):
                 db.session.commit()
 
                 response = make_response(
-                    camper.to_dict(),
-                    201
+                    camper.to_dict(rules = ('-signups', )),
+                    202
                 )
             except ValueError:
 
                 response = make_response(
-                    {"validation errors"},
-                    404
+                    {"errors": ["validation errors"]},
+                    400
                 )
                 return response
+            
     else:
         response = make_response(
-            {"Camper not found" : None},
+            {"error": "Camper not found"},
             404
         )
 
@@ -106,37 +112,39 @@ def campers_by_id(id):
 @app.route('/activities', methods = ['GET'])
 def activities():
     activities = Activity.query.all()
+    activities_dict = [activity.to_dict(rules = ('-signups', )) for activity in activities]
 
     response = make_response(
-        activities.to_dict(),
+        activities_dict,
         200
     )
 
     return response
 
-@app.route('/activities/<int:id>', models = ['DELETE'])
+@app.route('/activities/<int:id>', methods = ['DELETE'])
 def activity_by_id(id):
     activity = Activity.query.filter(Activity.id == id).first()
 
     if activity:
 
-        activity_signups = Signup.query.filter(Signup.activity_id == id).all()
+        associated_signups = Signup.query.filter(Signup.activity_id == id).all()
 
-        for activity_signup in activity_signups:
+        for associated_signup in associated_signups:
             # print(activity_signup)
-            db.session.delete(activity_signup)
+            db.session.delete(associated_signup)
         
         db.session.delete(activity)
+
         db.session.commit()
 
         response = make_response(
             {},
-            202
+            204
         )
     else:
 
         response = make_response(
-            {"Activity not found"},
+            {"error": "Activity not found"},
             404
         )
     
@@ -155,16 +163,18 @@ def signups():
         )
 
         db.session.add(new_signup_obj)
+
         db.session.commit()
 
         response = make_response(
             new_signup_obj.to_dict(),
             201
         )
+
     except ValueError:
         response = make_response(
-            {"validation errors" : None},
-            403
+            {"errors": ["validation errors"]},
+            400
         )
         return response
         

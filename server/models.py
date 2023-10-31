@@ -25,10 +25,10 @@ class Activity(db.Model, SerializerMixin):
     difficulty = db.Column(db.Integer)
 
     # Add relationship
-    signup = db.relationship("Signup", back_populates = "activity")
+    signups = db.relationship("Signup", back_populates = "activity")
 
     # Add serialization rules
-    serialize_rules = ('-signup.activity', )
+    serialize_rules = ('-signups.activity', )
 
     def __repr__(self):
         return f'<Activity {self.id}: {self.name}>'
@@ -42,25 +42,25 @@ class Camper(db.Model, SerializerMixin):
     age = db.Column(db.Integer)
 
     # Add relationship
-    signup = db.relationship("Signup", back_populates = "camper")
+    signups = db.relationship("Signup", back_populates = "camper")
 
     # Add serialization rules
-    serialize_rules = ('-signup.camper', )
+    serialize_rules = ('-signups.camper', )
 
     # Add validation
     @validates('name')
     def validates_name(self, key, name):
-        if type(name) == str:
+        if name:
             return name
         else:
-            raise ValueError("Name must be a string!")
+            raise ValueError("Camper must have a name!")
     
     @validates('age')
     def validates_age(self, key, age):
-        if type(age) == int and 8 <= age <= 18:
+        if 8 <= age <= 18:
             return age
         else:
-            raise ValueError("Age must be an integer with a value between 8 and 18, inclusive!")
+            raise ValueError("Camper must have an age with a value between 8 and 18, inclusive!")
 
     def __repr__(self):
         return f'<Camper {self.id}: {self.name}>'
@@ -75,19 +75,19 @@ class Signup(db.Model, SerializerMixin):
     activity_id = db.Column(db.Integer, db.ForeignKey('activities.id'))
 
     # Add relationships
-    activity = db.relationship("Activity", back_populates = ('signup'))
-    camper = db.relationship("Camper", back_populates = ('signup'))
+    activity = db.relationship("Activity", back_populates = ('signups'))
+    camper = db.relationship("Camper", back_populates = ('signups'))
 
     # Add serialization rules
-    serialize_rules = ('-camper.signup', '-activity.signup')
+    serialize_rules = ('-camper.signups', '-activity.signups')
     
     # Add validation
     @validates('time')
     def validates_time(self, key, time):
-        if type(time) == int and 0 <= time <= 23:
+        if 0 <= time <= 23:
             return time
         else:
-            raise ValueError("Time must be an integer with a value between 0 and 23, inclusive!")
+            raise ValueError("Time must be a value between 0 and 23, inclusive!")
     
     def __repr__(self):
         return f'<Signup {self.id}>'
